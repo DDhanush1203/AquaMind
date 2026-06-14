@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -17,49 +16,47 @@ from sklearn.utils.class_weight import compute_class_weight
 import warnings
 warnings.filterwarnings("ignore")
 
-# PAGE CONFIG 
+# ─── PAGE CONFIG ────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Smart Irrigation AI",
+    page_title="AquaMind | Smart Irrigation",
     page_icon="💧",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# CUSTOM CSS 
+# ─── CUSTOM CSS — BLUE THEME ─────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
 
 :root {
-    --p900: #1a0533;
-    --p800: #2d0a57;
-    --p700: #46167f;
-    --p600: #6122a8;
-    --p500: #7c35c5;
-    --p400: #9d5ee0;
-    --p300: #bb8eed;
-    --p200: #d9bef6;
-    --p100: #f0e3fd;
-    --p50:  #f9f4ff;
-    --accent: #c084fc;
-    --gold: #f0b429;
-    --text: #1a0533;
-    --muted: #6b5f7a;
+    --p900: #0a2540;
+    --p800: #0f3a5f;
+    --p700: #155185;
+    --p600: #1b6cad;
+    --p500: #2389d6;
+    --p400: #4fa8e8;
+    --p300: #8ec9f2;
+    --p200: #c2e2f9;
+    --p100: #e6f3fc;
+    --p50:  #f5fafe;
+    --accent: #5ad1e6;
+    --gold: #f2b134;
+    --text: #0a2540;
+    --muted: #5f7a91;
 }
 
 html, body, [class*="css"] {
     font-family: 'DM Sans', sans-serif;
 }
 
-/* Main background */
 .stApp {
-    background: linear-gradient(135deg, var(--p50) 0%, #fdf8ff 50%, #f5e8ff 100%);
+    background: linear-gradient(135deg, var(--p50) 0%, #f0f8ff 50%, #e3f1fc 100%);
     min-height: 100vh;
 }
 
-/* Hide default streamlit elements */
 #MainMenu, footer { visibility: hidden; }
-[data-testid="collapsedControl"] { 
+[data-testid="collapsedControl"] {
     visibility: visible !important;
     display: block !important;
     position: fixed !important;
@@ -68,7 +65,7 @@ html, body, [class*="css"] {
     z-index: 999999 !important;
 }
 
-/* Custom header */
+/* Header */
 .aquamind-header {
     background: linear-gradient(135deg, var(--p900) 0%, var(--p700) 60%, var(--p500) 100%);
     padding: 2.5rem 3rem;
@@ -82,7 +79,7 @@ html, body, [class*="css"] {
     position: absolute;
     top: -40px; right: -40px;
     width: 200px; height: 200px;
-    background: radial-gradient(circle, rgba(192,132,252,0.3) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(90,209,230,0.3) 0%, transparent 70%);
     border-radius: 50%;
 }
 .aquamind-header::after {
@@ -90,7 +87,7 @@ html, body, [class*="css"] {
     position: absolute;
     bottom: -20px; left: 20%;
     width: 150px; height: 150px;
-    background: radial-gradient(circle, rgba(240,180,41,0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(242,177,52,0.15) 0%, transparent 70%);
     border-radius: 50%;
 }
 .header-title {
@@ -110,8 +107,8 @@ html, body, [class*="css"] {
 }
 .header-badge {
     display: inline-block;
-    background: rgba(240,180,41,0.2);
-    border: 1px solid rgba(240,180,41,0.5);
+    background: rgba(242,177,52,0.2);
+    border: 1px solid rgba(242,177,52,0.5);
     color: var(--gold);
     font-size: 0.7rem;
     font-weight: 600;
@@ -181,25 +178,25 @@ html, body, [class*="css"] {
     margin-top: 1rem;
 }
 .pred-low {
-    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-    border: 2px solid #81c784;
+    background: linear-gradient(135deg, #e3f6ff, #c2e2f9);
+    border: 2px solid #8ec9f2;
 }
 .pred-medium {
     background: linear-gradient(135deg, #fff8e1, #ffecb3);
     border: 2px solid #ffd54f;
 }
 .pred-high {
-    background: linear-gradient(135deg, #fce4ec, #f8bbd0);
-    border: 2px solid #f48fb1;
+    background: linear-gradient(135deg, #e0f0ff, #b3d9ff);
+    border: 2px solid #2389d6;
 }
 .pred-label {
     font-family: 'Playfair Display', serif;
     font-size: 2.5rem;
     font-weight: 900;
 }
-.pred-low .pred-label { color: #2e7d32; }
+.pred-low .pred-label { color: #1b6cad; }
 .pred-medium .pred-label { color: #f57f17; }
-.pred-high .pred-label { color: #c62828; }
+.pred-high .pred-label { color: #0a2540; }
 
 /* Sidebar */
 [data-testid="stSidebar"] {
@@ -250,7 +247,7 @@ html, body, [class*="css"] {
 }
 
 /* Buttons */
-.stButton > button {
+.stButton > button, .stFormSubmitButton > button {
     background: linear-gradient(135deg, var(--p600), var(--p500)) !important;
     color: white !important;
     border: none !important;
@@ -262,9 +259,9 @@ html, body, [class*="css"] {
     letter-spacing: 0.3px;
     transition: all 0.2s;
 }
-.stButton > button:hover {
+.stButton > button:hover, .stFormSubmitButton > button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 25px rgba(98,34,168,0.3) !important;
+    box-shadow: 0 8px 25px rgba(35,137,214,0.3) !important;
 }
 
 /* Info boxes */
@@ -275,62 +272,47 @@ html, body, [class*="css"] {
     padding: 1rem 1.2rem;
     margin: 0.5rem 0;
 }
-
-/* Accuracy badge */
-.acc-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, var(--p600), var(--p400));
-    color: white;
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    font-weight: 700;
-    padding: 0.8rem 2rem;
-    border-radius: 16px;
-    margin: 0.5rem 0;
+.info-card, .info-card * {
+    color: #0a2540 !important;
 }
 
 /* Dataframe styling */
 .stDataFrame { border-radius: 12px; overflow: hidden; }
-            
+
 /* Fix invisible labels in main content */
 div[data-testid="stSlider"] label,
 div[data-testid="stSelectbox"] label {
-    color: #2d0a57 !important;
-}
-            /* Fix info card text color */
-.info-card, .info-card * {
-    color: #2d0a57 !important;
+    color: #0a2540 !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# MATPLOTLIB THEME 
+# ─── MATPLOTLIB THEME — BLUE ─────────────────────────────────────
 plt.rcParams.update({
     'font.family': 'DejaVu Sans',
-    'axes.facecolor': '#f9f4ff',
-    'figure.facecolor': '#f9f4ff',
-    'axes.edgecolor': '#d9bef6',
-    'axes.labelcolor': '#2d0a57',
-    'xtick.color': '#6b5f7a',
-    'ytick.color': '#6b5f7a',
-    'text.color': '#2d0a57',
-    'grid.color': '#e8d8f8',
+    'axes.facecolor': '#f5fafe',
+    'figure.facecolor': '#f5fafe',
+    'axes.edgecolor': '#c2e2f9',
+    'axes.labelcolor': '#0f3a5f',
+    'xtick.color': '#5f7a91',
+    'ytick.color': '#5f7a91',
+    'text.color': '#0f3a5f',
+    'grid.color': '#dceffb',
     'grid.alpha': 0.6,
 })
-PURPLE_PALETTE = ['#7c35c5','#9d5ee0','#bb8eed','#46167f','#c084fc','#d9bef6']
-PURPLE_CMAP = 'Purples'
+BLUE_PALETTE = ['#2389d6', '#4fa8e8', '#8ec9f2', '#155185', '#5ad1e6', '#c2e2f9']
+BLUE_CMAP = 'Blues'
 
-# DATA LOADING 
+# ─── DATA LOADING ─────────────────────────────────────────────────
 @st.cache_data
 def load_data():
-    df = pd.read_csv("irrigation_prediction.csv")
-    return df
+    return pd.read_csv("irrigation_prediction.csv")
 
 @st.cache_data
 def preprocess(df):
     df2 = df.copy()
-    cat_cols = ['Soil_Type','Crop_Type','Crop_Growth_Stage','Season',
-                'Irrigation_Type','Water_Source','Mulching_Used','Region']
+    cat_cols = ['Soil_Type', 'Crop_Type', 'Crop_Growth_Stage', 'Season',
+                'Irrigation_Type', 'Water_Source', 'Mulching_Used', 'Region']
     encoders = {}
     for col in cat_cols:
         le = LabelEncoder()
@@ -344,7 +326,9 @@ def preprocess(df):
 def train_models(df_enc):
     X = df_enc.drop('Irrigation_Need', axis=1)
     y = df_enc['Irrigation_Need']
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
     classes = np.unique(y_train)
     weights = compute_class_weight('balanced', classes=classes, y=y_train)
     cw = dict(zip(classes, weights))
@@ -369,7 +353,7 @@ def train_models(df_enc):
         }
     return results, X_train, X_test, y_train, y_test, X.columns.tolist()
 
-# LOAD 
+# ─── LOAD ─────────────────────────────────────────────────────────
 df_raw = load_data()
 df_enc, encoders, le_target = preprocess(df_raw)
 results, X_train, X_test, y_train, y_test, feature_names = train_models(df_enc)
@@ -377,16 +361,16 @@ best_model_name = max(results, key=lambda k: results[k]['accuracy'])
 best_result = results[best_model_name]
 class_names = le_target.classes_
 
-# HEADER
+# ─── HEADER ─────────────────────────────────────────────────────────
 st.markdown("""
 <div class="aquamind-header">
-    <div class="header-badge">🌱 SDG 2 · Zero Hunger</div>
+    <div class="header-badge">💧 SDG 6 · Clean Water & SDG 2 · Zero Hunger</div>
     <div class="header-title">💧 AquaMind</div>
-    <div class="header-subtitle">Intelligent Water Management System for Smart Farming · PES University · PES1PG25CA045</div>
+    <div class="header-subtitle">Intelligent Water Management System for Smart Farming</div>
 </div>
 """, unsafe_allow_html=True)
 
-# METRICS ROW
+# ─── METRICS ROW ─────────────────────────────────────────────────────
 best_acc = best_result['accuracy']
 best_f1 = best_result['f1']
 st.markdown(f"""
@@ -414,9 +398,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# SIDEBAR (RIGHT)
-# Streamlit sidebar is always left by default; we use st.sidebar
-# and inform user it appears on right via CSS if layout supports
+# ─── SIDEBAR ────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown('<div class="sidebar-heading">⚙ Configuration</div>', unsafe_allow_html=True)
     st.markdown("---")
@@ -439,13 +421,7 @@ with st.sidebar:
     st.markdown(f"**Target:** `Irrigation_Need`")
     st.markdown(f"**Task:** `Classification`")
 
-    st.markdown("---")
-    st.markdown('<div class="sidebar-heading">👨‍🎓 Student Info</div>', unsafe_allow_html=True)
-    st.markdown("**Name:** D Dhanush")
-    st.markdown("**SRN:** PES1PG25CA045")
-    st.markdown("**Domain:** Agriculture · AIML")
-
-# TABS
+# ─── TABS ─────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
     "📊 Exploratory Analysis",
     "🤖 Model Performance",
@@ -453,23 +429,23 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "📋 Dataset Preview",
 ])
 
+# ═══════════════════════════════════════════════════════
 # TAB 1 — EDA
-
+# ═══════════════════════════════════════════════════════
 with tab1:
     st.markdown('<div class="section-title">Exploratory Data Analysis <span class="section-line"></span></div>', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
     with col1:
-        # Target distribution
         fig, ax = plt.subplots(figsize=(6, 4))
         counts = df_raw['Irrigation_Need'].value_counts()
-        bars = ax.bar(counts.index, counts.values, color=PURPLE_PALETTE[:3],
+        bars = ax.bar(counts.index, counts.values, color=BLUE_PALETTE[:3],
                       edgecolor='white', linewidth=1.5, width=0.55)
         for bar, val in zip(bars, counts.values):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 50,
                     f'{val:,}\n({val/len(df_raw)*100:.1f}%)',
-                    ha='center', va='bottom', fontsize=9, color='#2d0a57', fontweight='500')
+                    ha='center', va='bottom', fontsize=9, color='#0f3a5f', fontweight='500')
         ax.set_title('Irrigation Need Distribution', fontsize=13, fontweight='bold', pad=15)
         ax.set_ylabel('Count')
         ax.spines['top'].set_visible(False)
@@ -479,10 +455,9 @@ with tab1:
         plt.close()
 
     with col2:
-        # Crop type vs irrigation
         fig, ax = plt.subplots(figsize=(6, 4))
         ct = pd.crosstab(df_raw['Crop_Type'], df_raw['Irrigation_Need'], normalize='index') * 100
-        ct.plot(kind='bar', ax=ax, color=PURPLE_PALETTE[:3], edgecolor='white', linewidth=0.8)
+        ct.plot(kind='bar', ax=ax, color=BLUE_PALETTE[:3], edgecolor='white', linewidth=0.8)
         ax.set_title('Irrigation Need by Crop Type (%)', fontsize=13, fontweight='bold', pad=15)
         ax.set_ylabel('Percentage (%)')
         ax.set_xlabel('')
@@ -496,9 +471,8 @@ with tab1:
     col3, col4 = st.columns(2)
 
     with col3:
-        # Temperature distribution
         fig, ax = plt.subplots(figsize=(6, 4))
-        for need, color in zip(['Low', 'Medium', 'High'], PURPLE_PALETTE[:3]):
+        for need, color in zip(['Low', 'Medium', 'High'], BLUE_PALETTE[:3]):
             subset = df_raw[df_raw['Irrigation_Need'] == need]['Temperature_C']
             ax.hist(subset, bins=25, alpha=0.65, label=need, color=color, edgecolor='white')
         ax.set_title('Temperature by Irrigation Need', fontsize=13, fontweight='bold', pad=15)
@@ -511,14 +485,13 @@ with tab1:
         plt.close()
 
     with col4:
-        # Soil moisture vs need
         fig, ax = plt.subplots(figsize=(6, 4))
         data_by_need = [df_raw[df_raw['Irrigation_Need'] == n]['Soil_Moisture'].values
                         for n in ['Low', 'Medium', 'High']]
-        bp = ax.boxplot(data_by_need, labels=['Low', 'Medium', 'High'],
+        bp = ax.boxplot(data_by_need, tick_labels=['Low', 'Medium', 'High'],
                         patch_artist=True, notch=False,
                         medianprops=dict(color='white', linewidth=2))
-        for patch, color in zip(bp['boxes'], PURPLE_PALETTE[:3]):
+        for patch, color in zip(bp['boxes'], BLUE_PALETTE[:3]):
             patch.set_facecolor(color)
             patch.set_alpha(0.85)
         ax.set_title('Soil Moisture by Irrigation Need', fontsize=13, fontweight='bold', pad=15)
@@ -531,13 +504,13 @@ with tab1:
 
     # Correlation heatmap
     st.markdown('<div class="section-title">Feature Correlation <span class="section-line"></span></div>', unsafe_allow_html=True)
-    num_cols = ['Soil_pH','Soil_Moisture','Organic_Carbon','Electrical_Conductivity',
-                'Temperature_C','Humidity','Rainfall_mm','Sunlight_Hours',
-                'Wind_Speed_kmh','Field_Area_hectare','Previous_Irrigation_mm']
+    num_cols = ['Soil_pH', 'Soil_Moisture', 'Organic_Carbon', 'Electrical_Conductivity',
+                'Temperature_C', 'Humidity', 'Rainfall_mm', 'Sunlight_Hours',
+                'Wind_Speed_kmh', 'Field_Area_hectare', 'Previous_Irrigation_mm']
     corr = df_enc[num_cols + ['Irrigation_Need']].corr()
     fig, ax = plt.subplots(figsize=(12, 6))
     mask = np.triu(np.ones_like(corr, dtype=bool))
-    sns.heatmap(corr, mask=mask, annot=True, fmt='.2f', cmap='RdPu',
+    sns.heatmap(corr, mask=mask, annot=True, fmt='.2f', cmap='Blues',
                 ax=ax, linewidths=0.5, linecolor='white',
                 annot_kws={'size': 8}, vmin=-1, vmax=1)
     ax.set_title('Feature Correlation Matrix', fontsize=13, fontweight='bold', pad=15)
@@ -546,42 +519,40 @@ with tab1:
     st.pyplot(fig, use_container_width=True)
     plt.close()
 
+# ═══════════════════════════════════════════════════════
 # TAB 2 — MODEL PERFORMANCE
-
+# ═══════════════════════════════════════════════════════
 with tab2:
     st.markdown('<div class="section-title">Model Comparison <span class="section-line"></span></div>', unsafe_allow_html=True)
 
-    # Comparison cards
     cols = st.columns(3)
     for i, (name, res) in enumerate(results.items()):
         with cols[i]:
             is_best = name == best_model_name
-            border = "border: 2px solid #7c35c5;" if is_best else ""
-            badge = "<span style='background:#7c35c5;color:white;font-size:0.65rem;padding:2px 8px;border-radius:10px;margin-left:8px'>BEST</span>" if is_best else ""
+            border = "border: 2px solid #2389d6;" if is_best else ""
+            badge = "<span style='background:#2389d6;color:white;font-size:0.65rem;padding:2px 8px;border-radius:10px;margin-left:8px'>BEST</span>" if is_best else ""
             st.markdown(f"""
             <div style="background:white;border-radius:16px;padding:1.2rem;{border}margin-bottom:1rem">
-                <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:#2d0a57">{name}{badge}</div>
+                <div style="font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:#0f3a5f">{name}{badge}</div>
                 <div style="margin-top:1rem">
-                    <div style="font-size:0.7rem;color:#6b5f7a;text-transform:uppercase;letter-spacing:0.5px">Accuracy</div>
-                    <div style="font-size:1.8rem;font-weight:700;color:#6122a8">{res['accuracy']*100:.2f}%</div>
+                    <div style="font-size:0.7rem;color:#5f7a91;text-transform:uppercase;letter-spacing:0.5px">Accuracy</div>
+                    <div style="font-size:1.8rem;font-weight:700;color:#1b6cad">{res['accuracy']*100:.2f}%</div>
                 </div>
                 <div>
-                    <div style="font-size:0.7rem;color:#6b5f7a;text-transform:uppercase;letter-spacing:0.5px">F1 Score</div>
-                    <div style="font-size:1.4rem;font-weight:600;color:#9d5ee0">{res['f1']*100:.2f}%</div>
+                    <div style="font-size:0.7rem;color:#5f7a91;text-transform:uppercase;letter-spacing:0.5px">F1 Score</div>
+                    <div style="font-size:1.4rem;font-weight:600;color:#4fa8e8">{res['f1']*100:.2f}%</div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-    # Selected model deep dive
     sel = results[selected_model]
     st.markdown(f'<div class="section-title">Deep Dive: {selected_model} <span class="section-line"></span></div>', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
     with col1:
-        # Confusion matrix
         fig, ax = plt.subplots(figsize=(5, 4))
-        sns.heatmap(sel['cm'], annot=True, fmt='d', cmap='Purples',
+        sns.heatmap(sel['cm'], annot=True, fmt='d', cmap='Blues',
                     xticklabels=class_names, yticklabels=class_names,
                     ax=ax, linewidths=0.5, linecolor='white',
                     annot_kws={'size': 12, 'fontweight': 'bold'})
@@ -592,7 +563,6 @@ with tab2:
         plt.close()
 
     with col2:
-        # Per-class metrics
         report = sel['report']
         classes_in_report = [c for c in class_names if c in report]
         metrics = ['precision', 'recall', 'f1-score']
@@ -601,8 +571,8 @@ with tab2:
         fig, ax = plt.subplots(figsize=(5, 4))
         for i, metric in enumerate(metrics):
             vals = [report[c][metric] for c in classes_in_report]
-            bars = ax.bar(x + i * width, vals, width, label=metric.capitalize(),
-                         color=PURPLE_PALETTE[i], edgecolor='white', linewidth=0.8)
+            ax.bar(x + i * width, vals, width, label=metric.capitalize(),
+                   color=BLUE_PALETTE[i], edgecolor='white', linewidth=0.8)
         ax.set_xticks(x + width)
         ax.set_xticklabels(classes_in_report)
         ax.set_ylim(0, 1.1)
@@ -614,18 +584,17 @@ with tab2:
         st.pyplot(fig, use_container_width=True)
         plt.close()
 
-    # Feature importance (Random Forest)
     if 'Random Forest' in results:
         st.markdown('<div class="section-title">Feature Importance (Random Forest) <span class="section-line"></span></div>', unsafe_allow_html=True)
         rf_model = results['Random Forest']['model']
         importances = pd.Series(rf_model.feature_importances_, index=feature_names).sort_values(ascending=True)
         top15 = importances.tail(15)
         fig, ax = plt.subplots(figsize=(10, 5))
-        colors = plt.cm.Purples(np.linspace(0.4, 0.9, len(top15)))
+        colors = plt.cm.Blues(np.linspace(0.4, 0.9, len(top15)))
         bars = ax.barh(top15.index, top15.values, color=colors, edgecolor='white', linewidth=0.8)
         for bar, val in zip(bars, top15.values):
             ax.text(val + 0.001, bar.get_y() + bar.get_height()/2,
-                    f'{val:.3f}', va='center', fontsize=9, color='#2d0a57')
+                    f'{val:.3f}', va='center', fontsize=9, color='#0f3a5f')
         ax.set_title('Top 15 Feature Importances', fontsize=13, fontweight='bold', pad=15)
         ax.set_xlabel('Importance Score')
         ax.spines['top'].set_visible(False)
@@ -634,8 +603,9 @@ with tab2:
         st.pyplot(fig, use_container_width=True)
         plt.close()
 
+# ═══════════════════════════════════════════════════════
 # TAB 3 — PREDICTION
-
+# ═══════════════════════════════════════════════════════
 with tab3:
     st.markdown('<div class="section-title">Predict Irrigation Requirement <span class="section-line"></span></div>', unsafe_allow_html=True)
     st.markdown("""
@@ -645,37 +615,40 @@ with tab3:
     </div>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns(3)
+    with st.form("prediction_form"):
+        c1, c2, c3 = st.columns(3)
 
-    with c1:
-        st.markdown("**🌱 Soil & Field**")
-        soil_type = st.selectbox("Soil Type", ['Clay', 'Loamy', 'Sandy', 'Silt'])
-        soil_ph = st.slider("Soil pH", 4.8, 8.2, 6.5, 0.1)
-        soil_moisture = st.slider("Soil Moisture (%)", 8.0, 65.0, 37.0, 0.5)
-        organic_carbon = st.slider("Organic Carbon (%)", 0.3, 1.6, 0.9, 0.05)
-        electrical_cond = st.slider("Electrical Conductivity", 0.1, 3.5, 1.8, 0.1)
-        field_area = st.slider("Field Area (ha)", 0.3, 15.0, 5.0, 0.1)
-        mulching = st.selectbox("Mulching Used", ['Yes', 'No'])
+        with c1:
+            st.markdown("**🌱 Soil & Field**")
+            soil_type = st.selectbox("Soil Type", encoders['Soil_Type'].classes_)
+            soil_ph = st.slider("Soil pH", 4.8, 8.2, 6.5, 0.1)
+            soil_moisture = st.slider("Soil Moisture (%)", 8.0, 65.0, 37.0, 0.5)
+            organic_carbon = st.slider("Organic Carbon (%)", 0.3, 1.6, 0.9, 0.05)
+            electrical_cond = st.slider("Electrical Conductivity", 0.1, 3.5, 1.8, 0.1)
+            field_area = st.slider("Field Area (ha)", 0.3, 15.0, 5.0, 0.1)
+            mulching = st.selectbox("Mulching Used", encoders['Mulching_Used'].classes_)
 
-    with c2:
-        st.markdown("**🌤 Weather**")
-        temperature = st.slider("Temperature (°C)", 12.0, 42.0, 27.0, 0.5)
-        humidity = st.slider("Humidity (%)", 25.0, 95.0, 60.0, 1.0)
-        rainfall = st.slider("Rainfall (mm)", 0.0, 2500.0, 1250.0, 10.0)
-        sunlight = st.slider("Sunlight Hours", 4.0, 11.0, 7.5, 0.5)
-        wind_speed = st.slider("Wind Speed (km/h)", 0.5, 20.0, 10.0, 0.5)
+        with c2:
+            st.markdown("**🌤 Weather**")
+            temperature = st.slider("Temperature (°C)", 12.0, 42.0, 27.0, 0.5)
+            humidity = st.slider("Humidity (%)", 25.0, 95.0, 60.0, 1.0)
+            rainfall = st.slider("Rainfall (mm)", 0.0, 2500.0, 1250.0, 10.0)
+            sunlight = st.slider("Sunlight Hours", 4.0, 11.0, 7.5, 0.5)
+            wind_speed = st.slider("Wind Speed (km/h)", 0.5, 20.0, 10.0, 0.5)
 
-    with c3:
-        st.markdown("**🌾 Crop & Context**")
-        crop_type = st.selectbox("Crop Type", ['Cotton', 'Maize', 'Potato', 'Rice', 'Sugarcane', 'Wheat'])
-        growth_stage = st.selectbox("Growth Stage", ['Flowering', 'Harvest', 'Sowing', 'Vegetative'])
-        season = st.selectbox("Season", ['Kharif', 'Rabi', 'Zaid'])
-        irrigation_type = st.selectbox("Irrigation Type", ['Canal', 'Drip', 'Rainfed', 'Sprinkler'])
-        water_source = st.selectbox("Water Source", ['Groundwater', 'Rainwater', 'Reservoir', 'River'])
-        region = st.selectbox("Region", ['Central', 'East', 'North', 'South', 'West'])
-        prev_irrigation = st.slider("Previous Irrigation (mm)", 0.0, 120.0, 60.0, 1.0)
+        with c3:
+            st.markdown("**🌾 Crop & Context**")
+            crop_type = st.selectbox("Crop Type", encoders['Crop_Type'].classes_)
+            growth_stage = st.selectbox("Growth Stage", encoders['Crop_Growth_Stage'].classes_)
+            season = st.selectbox("Season", encoders['Season'].classes_)
+            irrigation_type = st.selectbox("Irrigation Type", encoders['Irrigation_Type'].classes_)
+            water_source = st.selectbox("Water Source", encoders['Water_Source'].classes_)
+            region = st.selectbox("Region", encoders['Region'].classes_)
+            prev_irrigation = st.slider("Previous Irrigation (mm)", 0.0, 120.0, 60.0, 1.0)
 
-    if st.button("🔮 Predict Irrigation Need", use_container_width=True):
+        submitted = st.form_submit_button("🔮 Predict Irrigation Need", use_container_width=True)
+
+    if submitted:
         input_dict = {
             'Soil_Type': encoders['Soil_Type'].transform([soil_type])[0],
             'Soil_pH': soil_ph,
@@ -697,13 +670,13 @@ with tab3:
             'Previous_Irrigation_mm': prev_irrigation,
             'Region': encoders['Region'].transform([region])[0],
         }
-        input_df = pd.DataFrame([input_dict])
+        input_df = pd.DataFrame([input_dict])[feature_names]
         model = results[selected_model]['model']
         prediction = le_target.inverse_transform(model.predict(input_df))[0]
         proba = model.predict_proba(input_df)[0]
 
         css_class = {'Low': 'pred-low', 'Medium': 'pred-medium', 'High': 'pred-high'}[prediction]
-        icon = {'Low': '🟢', 'Medium': '🟡', 'High': '🔴'}[prediction]
+        icon = {'Low': '🟢', 'Medium': '🟡', 'High': '🔵'}[prediction]
         advice = {
             'Low': 'Soil moisture is adequate. Minimal irrigation needed — conserve water.',
             'Medium': 'Moderate irrigation recommended. Monitor soil conditions daily.',
@@ -723,10 +696,10 @@ with tab3:
         prob_df = pd.DataFrame({'Class': le_target.classes_, 'Probability': proba})
         fig, ax = plt.subplots(figsize=(6, 2.5))
         bars = ax.barh(prob_df['Class'], prob_df['Probability'],
-                      color=PURPLE_PALETTE[:3], edgecolor='white', height=0.5)
+                      color=BLUE_PALETTE[:3], edgecolor='white', height=0.5)
         for bar, val in zip(bars, prob_df['Probability']):
             ax.text(val + 0.005, bar.get_y() + bar.get_height()/2,
-                    f'{val*100:.1f}%', va='center', fontsize=11, fontweight='600', color='#2d0a57')
+                    f'{val*100:.1f}%', va='center', fontsize=11, fontweight='600', color='#0f3a5f')
         ax.set_xlim(0, 1.15)
         ax.set_xlabel('Probability')
         ax.spines['top'].set_visible(False)
@@ -734,9 +707,9 @@ with tab3:
         st.pyplot(fig, use_container_width=True)
         plt.close()
 
-
+# ═══════════════════════════════════════════════════════
 # TAB 4 — DATASET PREVIEW
-
+# ═══════════════════════════════════════════════════════
 with tab4:
     st.markdown('<div class="section-title">Dataset Preview <span class="section-line"></span></div>', unsafe_allow_html=True)
     col1, col2 = st.columns([3, 1])
